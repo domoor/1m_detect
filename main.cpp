@@ -15,11 +15,8 @@ using namespace std;
 #define IPv4			4
 #define PROTOCOL_TCP		6
 #define PORT_HTTP		80
-#define SYMBOL			39
 #define MAX_NUMBER		1000001
-
 #define half(x, y)		((x)+(y))/2
-#define chk_flag		1
 
 uint32_t sum = 0;
 uint32_t fileNum[MAX_NUMBER];
@@ -52,25 +49,6 @@ struct tcp_hdr
 	uint16_t chk;				/* checksum */
 	uint16_t urgent_P;			/* urgent pointer */
 };
-
-void check(struct ipv4_hdr *ip, struct tcp_hdr *tcp) {
-	uint8_t ip_buf[INET_ADDRSTRLEN];
-	printf("Source IP\t: %s\n", inet_ntop(AF_INET, &ip->src, (char*)ip_buf, INET_ADDRSTRLEN));
-	printf("Destination IP\t: %s\n", inet_ntop(AF_INET, &ip->dst, (char*)ip_buf, INET_ADDRSTRLEN));
-	printf("Source Port\t: %u\n", ntohs(tcp->s_port));
-	printf("Destination Port: %u\n", ntohs(tcp->d_port));
-	printf("Sequence Number\t: ");
-	for(uint32_t i=0; i<4; i++) printf("%02X ", ((uint8_t*)&tcp->seq)[i]);
-	puts("");
-}
-
-void dump(uint8_t *pkt, uint32_t size){
-    for(uint32_t i=0; i<size; i++) {
-        if(i && i%16==0) puts("");
-        printf("%02X ", pkt[i]);
-    }
-	puts("");
-}
 
 bool file_csv() {
 	uint32_t idx = 0;
@@ -241,8 +219,6 @@ int main() {
 						URL.erase(URL_len-1);
 						if(binarysearch(&in, URL)) {
 							printf("\nBlocked URL : %s\n", URL.c_str());
-							if(chk_flag) check(ip, tcp);
-							if(chk_flag) dump(data, 40);
 							continue;
 						}
 					}
