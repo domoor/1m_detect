@@ -1,10 +1,10 @@
 #include <winsock2.h>
-#include <Ws2tcpip.h>	// inet_ntop()
+#include <Ws2tcpip.h>		// inet_ntop()
 #include <windows.h>
 #include <cstdio>		// printf()
 #include <cstdint>		// uintN_t
 #include <cstdlib>
-//#include <iostream>	// cout
+//#include <iostream>		// cout
 #include <string>		// string
 #include <regex>		// regex
 #include <fstream>		// file in/out
@@ -30,7 +30,7 @@ string str_array[MAX_NUMBER];
 struct ipv4_hdr
 {
 	uint8_t HL  : 4,			/* header length */
-			Ver : 4;			/* version */
+		Ver : 4;			/* version */
 	uint8_t tos;				/* type of service */
 	uint16_t len;				/* total length */
 	uint16_t id;				/* identification */
@@ -38,7 +38,7 @@ struct ipv4_hdr
 	uint8_t ttl;				/* time to live */
 	uint8_t protocol;			/* protocol */
 	uint16_t chk;				/* checksum */
-	struct in_addr src, dst;	/* source and dest address */
+	struct in_addr src, dst;		/* source and dest address */
 };
 
 struct tcp_hdr
@@ -47,8 +47,8 @@ struct tcp_hdr
 	uint16_t d_port;			/* destination port */
 	uint32_t seq;				/* sequence number */
 	uint32_t ack;				/* acknowledgement number */
-	uint8_t reservation : 4,	/* (unused) */
-			off         : 4;	/* data offset */
+	uint8_t reservation : 4,		/* (unused) */
+		off         : 4;		/* data offset */
 	uint8_t  flag;				/* control flags */
 	uint16_t windows;			/* window */
 	uint16_t chk;				/* checksum */
@@ -187,7 +187,7 @@ bool file_txt() {
 	/*
 	// 임의의 정렬된 URL 출력하기.
 	string sts;
-	if(in.is_open()) {
+	if(in.is_open()) {	
 	for(int i=0; i<MAX_NUMBER; i++) {
 	cout << "fileNum["<<i<<"] = " << fileNum[i] << endl;
 	in.seekg(fileNum[i]);
