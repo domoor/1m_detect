@@ -18,9 +18,11 @@ using namespace std;
 #define MAX_NUMBER		1000001
 #define half(x, y)		((x)+(y))/2
 
-uint32_t sum = 0;
+//uint32_t sum = 0;
 uint32_t fileNum[MAX_NUMBER];
 string str_array[MAX_NUMBER];
+uint32_t file_off[MAX_NUMBER];
+string file_url[MAX_NUMBER];
 
 struct ipv4_hdr
 {
@@ -70,10 +72,13 @@ bool file_csv() {
 //			s = s_tmp;
 			if(regex_search(s, m, pattern)) {
 				string URL = m.str();
-				str_array[idx] = URL;
+//				str_array[idx] = URL;
+				file_url[idx] = URL;
 				// 14783570 개 + 포인트배열 1000001개 + uint32_t 1000001개 = 22783574 바이트 / 최대 22MB 소요 예상
-				sum += str_array[idx].size();
-				printf("%d : %s\n",idx+1, str_array[idx].c_str());
+//				sum += str_array[idx].size();
+//				sum += file_url[idx].size();
+//				printf("%d : %s\n",idx+1, str_array[idx].c_str());
+				printf("%d : %s\n",idx+1, file_url[idx].c_str());
 				idx++;
 			}
 		}
@@ -81,16 +86,18 @@ bool file_csv() {
 	else { fprintf(stderr, "error: File not found\n"); return 1; }
 	in.close();
 //	fclose(rfp);
-	printf("\nstring size : %d\n", sum);
+//	printf("\nstring size : %d\n", sum);
 
 	puts("\nsorting");
-	sort(str_array, str_array + MAX_NUMBER);
+//	sort(str_array, str_array + MAX_NUMBER);
+	sort(file_url, file_url + MAX_NUMBER);
 	puts("sorted\n");
 
 	// 정렬된 URL 저장하기.
 	out.open("sorted_url.txt");
 	if(out.is_open()) {
-		for(uint32_t i=0; i<MAX_NUMBER; i++) out << str_array[i] <<'\n';
+//		for(uint32_t i=0; i<MAX_NUMBER; i++) out << str_array[i] <<'\n';
+		for(uint32_t i=0; i<MAX_NUMBER; i++) out << file_url[i] <<'\n';
 	}
 	else { fprintf(stderr, "error: creating file\n"); return 1; }
 	out.close();
@@ -101,8 +108,10 @@ bool file_csv() {
 		uint32_t n = 0;
 		for(uint32_t i=0; i<MAX_NUMBER; i++) {
 			out << n << '\n';
-			fileNum[i] = n;
-			n += str_array[i].size()+2;
+//			fileNum[i] = n;
+			file_off[i] = n;
+//			n += str_array[i].size()+2;
+			n += file_url[i].size()+2;
 		}
 	}
 	else { fprintf(stderr, "error: creating file\n"); return 1; }
@@ -119,7 +128,8 @@ bool file_txt() {
 	if(in.is_open()) {
 		for(uint32_t i=0; i<MAX_NUMBER; i++) {
 			getline(in, s_tmp);
-			fileNum[i] = stoi(s_tmp);
+//			fileNum[i] = stoi(s_tmp);
+			file_off[i] = stoi(s_tmp);
 		}
 	}
 	else { fprintf(stderr, "error: File not found\n"); return 1; }
@@ -134,14 +144,18 @@ bool binarysearch(ifstream* in, string URL) {
 	uint32_t min_p = 0;
 	uint32_t now_p = half(max_p,min_p);
 	while(1){
-		if(str_array[now_p].empty()) { 			// 비었으면
+//		if(str_array[now_p].empty()) { 			// 비었으면
+		if(file_url[now_p].empty()) { 			// 비었으면
 			string s_tmp;
-			(*in).seekg(fileNum[now_p]);
+//			(*in).seekg(fileNum[now_p]);
+			(*in).seekg(file_off[now_p]);
 			getline(*in, s_tmp);
-			str_array[now_p] = s_tmp;
+//			str_array[now_p] = s_tmp;
+			file_url[now_p] = s_tmp;
 		}
 		int res;
-		if((res = URL.compare(str_array[now_p]))==0) {	// 일치하면
+//		if((res = URL.compare(str_array[now_p]))==0) {	// 일치하면
+		if((res = URL.compare(file_url[now_p]))==0) {	// 일치하면
 			return true;
 		}
 		else if(max_p-min_p == 1) {			// 필터 대상 X
@@ -205,18 +219,16 @@ int main() {
 		if(ip->Ver==IPv4 && ip->protocol==PROTOCOL_TCP) {
 			uint32_t ip_len = ip->HL<<2;
 			struct tcp_hdr *tcp = (struct tcp_hdr*)(packet+ip_len);
-			if(ntohs(tcp->s_port)==PORT_HTTP || ntohs(tcp->d_port)==PORT_HTTP) {
+			if(ntohs(tcp->d_port)==PORT_HTTP) {
 				uint32_t tcp_len = tcp->off<<2;
 				uint32_t data_len = ntohs(ip->len)-ip_len-tcp_len;
 				uint8_t *data = (uint8_t*)tcp+tcp_len;
 				if(data_len) {
 					string payload(data, data+data_len);
-					regex pattern("Host: ([^\n]+)");
+					static regex pattern("Host: ([^\r]+)");
 					smatch m;
 					if(regex_search(payload,m,pattern)) {
 						string URL = m[1].str();
-						uint32_t URL_len = URL.length();
-						URL.erase(URL_len-1);
 						if(binarysearch(&in, URL)) {
 							printf("\nBlocked URL : %s\n", URL.c_str());
 							continue;
