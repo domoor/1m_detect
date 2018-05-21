@@ -13,12 +13,10 @@ using namespace std;
 
 #define MAXBUF			0xFFFF
 #define IPv4			4
-#define PROTOCOL_TCP	6
+#define PROTOCOL_TCP		6
 #define PORT_HTTP		80
 #define SYMBOL			39
 #define MAX_NUMBER		1000001
-//#define MAX_NUMBER		40
-//#define MAX_NUMBER		2
 
 #define half(x, y)		((x)+(y))/2
 #define chk_flag		1
@@ -80,14 +78,12 @@ bool file_csv() {
 	ofstream out;
 //	FILE *rfp, *wfp;
 
-//	in.open("test.csv");
 	in.open("majestic_million.csv");
-//	rfp = fopen("test.csv", "r");
 //	rfp = fopen("majestic_million.csv", "r");
 	string s;
 	if(in.is_open()) {
 //	if(rfp != NULL){
-		char s_tmp[1024];
+//		char s_tmp[1024];
 		while (!in.eof()) {
 //		for(idx=0; NULL != fgets(s_tmp,1024,rfp); idx++){
 			getline(in, s);
@@ -96,15 +92,11 @@ bool file_csv() {
 //			s = s_tmp;
 			if(regex_search(s, m, pattern)) {
 				string URL = m.str();
-//				cout << "URL : " << URL << endl;
-				str_array[idx++] = URL;
-//				str_array[idx] = URL;
-				// 14783555 개 + 포인트배열 1000000개 = 18783555 바이트 / 18MB 소요 예상
-				// 14783570 개 + 포인트배열 1000001개 + int 1000001개 = 22783574 바이트 / 최대 22MB 소요 예상
-				sum += str_array[idx-1].size();
-//				sum += str_array[idx].size();
-				printf("%d : %s\n",idx, str_array[idx-1].c_str());
-//				printf("%d : %s\n",idx+1, str_array[idx].c_str());
+				str_array[idx] = URL;
+				// 14783570 개 + 포인트배열 1000001개 + uint32_t 1000001개 = 22783574 바이트 / 최대 22MB 소요 예상
+				sum += str_array[idx].size();
+				printf("%d : %s\n",idx+1, str_array[idx].c_str());
+				idx++;
 			}
 		}
 	}
@@ -113,28 +105,6 @@ bool file_csv() {
 //	fclose(rfp);
 	printf("\nstring size : %d\n", sum);
 
-/*
-	// 정렬 안 된 URL 저장하기.
-	out.open("unsorted_url.txt");
-	if(out.is_open()) {
-		for(int i=0; i<MAX_NUMBER; i++) out << str_array[i] << '\n';
-	}
-	else { fprintf(stderr, "error: creating file\n"); return 1; }
-	out.close();
-*/
-/*
-	// 정렬 안 된 URL 불러오기.
-	puts("load_unsorted_url");
-	rfp = fopen("unsorted_url.txt", "r");
-	if(rfp != NULL){
-		char s_tmp[256];
-		for(int i=0; NULL != fgets(s_tmp,256,rfp); i++){
-			str_array[i] = s_tmp;
-		}
-	}
-	else cout << "파일 작성 중 예기치 못한 오류가 발생하였습니다!\n";
-	fclose(rfp);
-*/
 	puts("\nsorting");
 	sort(str_array, str_array + MAX_NUMBER);
 	puts("sorted\n");
@@ -146,12 +116,6 @@ bool file_csv() {
 	}
 	else { fprintf(stderr, "error: creating file\n"); return 1; }
 	out.close();
-
-/*
-	// 정렬된 URL 불러오기.
-	cout << "[ sorting URL ]\n";
-	for(int i=0; i<MAX_NUMBER; i++) cout << str_array[i] << endl;
-*/
 
 	// 정렬된 URL 포인터 저장하기.
 	out.open("sorted_url_num.txt");
@@ -177,27 +141,12 @@ bool file_txt() {
 	if(in.is_open()) {
 		for(uint32_t i=0; i<MAX_NUMBER; i++) {
 			getline(in, s_tmp);
-//			cout << s_tmp << endl;
 			fileNum[i] = stoi(s_tmp);
 		}
 	}
 	else { fprintf(stderr, "error: File not found\n"); return 1; }
 	in.close();
 	puts("load complete.\n");
-	/*
-	// 임의의 정렬된 URL 출력하기.
-	string sts;
-	if(in.is_open()) {	
-	for(int i=0; i<MAX_NUMBER; i++) {
-	cout << "fileNum["<<i<<"] = " << fileNum[i] << endl;
-	in.seekg(fileNum[i]);
-	getline(in, sts);
-	cout << sts << endl;
-	}
-	}
-	else { cout << "파일을 찾을 수 없습니다!\n"; return -1; }
-	in.close();
-	*/
 
 	return 0;
 }
@@ -206,42 +155,25 @@ bool binarysearch(ifstream* in, string URL) {
 	uint32_t max_p = MAX_NUMBER;
 	uint32_t min_p = 0;
 	uint32_t now_p = half(max_p,min_p);
-//	printf("now_p = %d\n", now_p);
 	while(1){
-		if(str_array[now_p].empty()) { // 비었으면
+		if(str_array[now_p].empty()) { 			// 비었으면
 			string s_tmp;
 			(*in).seekg(fileNum[now_p]);
 			getline(*in, s_tmp);
 			str_array[now_p] = s_tmp;
-//			printf("s_tmp = %s\n", s_tmp.c_str());
-//			printf("(empty)now_p = %d\n", now_p);
-//			printf("(empty)fileNum[now_p] = %d\n", fileNum[now_p]);
-//			printf("(empty)max_p(%d) min_p(%d) now_p(%d)\n", max_p, min_p, now_p);
-//			printf("str_arrayp[now_p] = %s\n", str_array[now_p].c_str());
-//			printf("s_tmp = %s\n", s_tmp.c_str());
 		}
 		int res;
-		if((res = URL.compare(str_array[now_p]))==0) { // 일치하면
-//			puts("일치");
+		if((res = URL.compare(str_array[now_p]))==0) {	// 일치하면
 			return true;
 		}
-		else if(max_p-min_p == 1) { // 필터링에서 제외
-//			printf("\nURL : %s\n", URL.c_str());
-//			printf("change : %s\n", str_array[now_p].c_str());
-//			printf("max_p(%d)-min_p(%d) = %d\n", max_p, min_p, max_p-min_p);
+		else if(max_p-min_p == 1) {			// 필터 대상 X
 			return false;
 		}
-		else if(res < 0) { // 사전순으로 앞일 때
-//			printf("앞max_p(%d) min_p(%d) = now_p%d\n", max_p, min_p, now_p);
-//			printf("URL : %s\n", URL.c_str());
-//			printf("change : %s\n", str_array[now_p].c_str());
+		else if(res < 0) { 				// 사전순으로 앞일 때
 			max_p = now_p;
 			now_p = half(max_p, min_p);
 		}
-		else if(res > 0) { // 사전순으로 뒤일 때
-//			printf("뒤max_p(%d) min_p(%d) = now_p%d\n", max_p, min_p, now_p);
-//			printf("URL : %s\n", URL.c_str());
-//			printf("change : %s\n", str_array[now_p].c_str());
+		else if(res > 0) { 				// 사전순으로 뒤일 때
 			min_p = now_p;
 			now_p = half(max_p, min_p);
 		}
